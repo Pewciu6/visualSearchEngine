@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: visual-search-engine
+Version: 0.1.0
+Summary: Visual Search Engine using ResNet & Triplet Loss
+Author-email: Paweł Litwin <litwinp2006@gmail.com>
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: pandas
+Requires-Dist: pillow
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: pydantic

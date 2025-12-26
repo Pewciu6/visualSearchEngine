@@ -1,0 +1,7 @@
+torch
+torchvision
+pandas
+pillow
+fastapi
+uvicorn
+pydantic
