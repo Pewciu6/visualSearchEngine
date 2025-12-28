@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class TripletLoss(nn.Module):
     def __init__(self, margin: float = 1.0):
-        super(TripletLoss, self).__init__()
+        super().__init__()
         self.margin = margin
 
     def forward(self, anchor: torch.Tensor, positive: torch.Tensor, negative: torch.Tensor) -> torch.Tensor:

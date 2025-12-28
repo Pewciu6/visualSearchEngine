@@ -1,4 +1,3 @@
-import os
 import random
 from pathlib import Path
 
@@ -75,20 +74,20 @@ def main():
     for epoch in range(EPOCHS):
         model.train()
         total_loss = 0.0
-        
+
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{EPOCHS}", unit="batch")
 
         for anchor, positive, negative in progress_bar:
             anchor, positive, negative = anchor.to(DEVICE), positive.to(DEVICE), negative.to(DEVICE)
 
             optimizer.zero_grad()
-            
+
             anchor_out = model(anchor)
             positive_out = model(positive)
             negative_out = model(negative)
 
             loss = criterion(anchor_out, positive_out, negative_out)
-            
+
             loss.backward()
             optimizer.step()
 
@@ -101,7 +100,7 @@ def main():
         if avg_loss < best_loss:
             best_loss = avg_loss
             torch.save(model.state_dict(), SAVE_DIR / "best_model.pth")
-        
+
         torch.save(model.state_dict(), SAVE_DIR / "last_model.pth")
 
 
