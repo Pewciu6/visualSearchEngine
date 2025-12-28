@@ -1,7 +1,9 @@
 pyproject.toml
 src/__init__.py
 src/data/dataset.py
+src/data/triplet_dataset.py
 src/models/__init__.py
+src/models/loss.py
 src/models/net.py
 visual_search_engine.egg-info/PKG-INFO
 visual_search_engine.egg-info/SOURCES.txt
