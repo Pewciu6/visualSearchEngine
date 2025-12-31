@@ -1,0 +1,16 @@
+# Ignorujemy środowisko wirtualne i Gita
+venv/
+env/
+.git/
+.gitignore
+
+# Cache Pythona
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+
+data/

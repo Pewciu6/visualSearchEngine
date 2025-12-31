@@ -12,9 +12,6 @@ env/
 
 data/
 
-checkpoints/
-*.pth
-
 *.png
 *.jpg
 !src/data/*.jpg  
