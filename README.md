@@ -52,20 +52,20 @@ To run the project, you need to:
 ```text
 visual-search-engine/
 ├── data/
-│   ├── images/       
+│   ├── images/       # (Empty initially)
 │   └── styles.csv    
 ├── src/
-|   |-- data/
-|   |   |-- dataset.py
-|   |   |-- tripley_dataset.py
-|   |
-|   |-- models/
-|       |-- loss.py
-|       |-- net.py
+│   ├── data/
+│   │   ├── dataset.py
+│   │   └── triplet_dataset.py
+│   └── models/
+│       ├── loss.py
+│       └── net.py
 ├── checkpoints/      # Model weights (.pth)
 ├── index/            # Vector database files (.pt, .json)
-├── Dockerfile
 ├── api.py
-|── build_index.py
-|-- train.py
-|-- Dockerfile
+├── build_index.py
+├── train.py
+├── Dockerfile
+├── requirements.txt
+└── README.md
