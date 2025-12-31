@@ -18,3 +18,12 @@ checkpoints/
 *.png
 *.jpg
 !src/data/*.jpg  
+
+*.avif
+*.jpg
+*.png
+
+index/
+
+*.json
+*.pt
