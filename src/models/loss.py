@@ -8,7 +8,9 @@ class TripletLoss(nn.Module):
         super().__init__()
         self.margin = margin
 
-    def forward(self, anchor: torch.Tensor, positive: torch.Tensor, negative: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, anchor: torch.Tensor, positive: torch.Tensor, negative: torch.Tensor
+    ) -> torch.Tensor:
         """
         Calculates Triplet Loss for batch.
         Args:

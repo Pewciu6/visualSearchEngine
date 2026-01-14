@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import pandas as pd
 from PIL import Image
@@ -37,7 +38,7 @@ class FashionDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx: int) -> tuple[any, int]:
+    def __getitem__(self, idx: int) -> tuple[Any, int]:
         row = self.data.iloc[idx]
         img_name = os.path.join(self.root_dir, row['filename'])
         label = row['label']

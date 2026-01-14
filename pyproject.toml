@@ -14,7 +14,9 @@ dependencies = [
     "pillow",
     "fastapi",
     "uvicorn",
-    "pydantic"
+    "pydantic",
+    "python-multipart",
+    "requests"
 ]
 
 [tool.setuptools.packages.find]
@@ -38,13 +40,12 @@ ignore = ["E501"]
 quote-style = "double"
 indent-style = "space"
 
-# --- MYPY (Type Checker) ---
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-disallow_incomplete_defs = true 
+disallow_incomplete_defs = true
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]

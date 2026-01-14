@@ -12,3 +12,131 @@ Requires-Dist: pillow
 Requires-Dist: fastapi
 Requires-Dist: uvicorn
 Requires-Dist: pydantic
+Requires-Dist: python-multipart
+Requires-Dist: requests
+Requires-Dist: tqdm>=4.67.1
+
+# Visual Search Engine
+
+A **Content-Based Image Retrieval (CBIR)** system powered by Deep Learning. This project allows users to upload an image of a fashion item (e.g., shoes, dress) and find visually similar products from a dataset, utilizing **Metric Learning** and **Vector Search**.
+
+![Python](https://img.shields.io/badge/Python-3.9-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.0-red)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.95-green)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![License](https://img.shields.io/badge/License-MIT-grey)
+
+---
+
+## Key Features
+* **Deep Metric Learning:** Utilizes a **ResNet-18** backbone trained with **Triplet Margin Loss** to learn a 128-dimensional embedding space where similar items are clustered together.
+* **Vector Search Engine:** Implements a custom Nearest Neighbor search using PyTorch's optimized matrix operations (Euclidean distance).
+* **Production-Ready API:** A high-performance REST API built with **FastAPI**, supporting image uploads, static file serving, and returning ranked JSON results with metadata.
+* **Dockerized Deployment:** Fully containerized application using a multi-stage Docker build, optimized for CPU inference (lightweight image).
+* **Data Integrity:** Robust pipeline ensuring 100% synchronization between image files on disk and vector indices.
+
+---
+
+## System Architecture
+
+1.  **Offline Training:** The neural network is trained on triplets (Anchor, Positive, Negative) to minimize the distance between similar items and maximize the distance between dissimilar ones.
+2.  **Indexing:** The entire dataset (44k+ images) is passed through the trained network. The resulting 128-dimensional vectors are saved to a binary index (`vectors.pt`).
+3.  **Inference (Online API):**
+    * User uploads a query image via API.
+    * Server computes the embedding for the query image.
+    * Server calculates Euclidean distances to all vectors in the database.
+    * Top-K nearest neighbors are returned as JSON results.
+
+---
+
+## Tech Stack
+
+* **Core:** Python 3.9
+* **Deep Learning:** PyTorch, Torchvision
+* **Data Processing:** Pandas, Pillow, NumPy
+* **Backend:** FastAPI, Uvicorn, Python-Multipart
+* **DevOps:** Docker, Git
+
+---
+
+## Data Setup (Important!)
+
+Due to the size of the dataset (**Fashion Product Images**), the raw images are **not included** in this repository.
+
+To run the project, you need to:
+1.  Download the dataset (e.g., from [Kaggle - Fashion Product Images Small](https://www.kaggle.com/paramaggarwal/fashion-product-images-small)).
+2.  Extract it and organize your project folder structure as follows:
+
+```text
+visual-search-engine/
+├── data/
+│   ├── images/       # (Empty initially)
+│   └── styles.csv
+├── src/
+│   ├── data/
+│   │   ├── dataset.py
+│   │   └── triplet_dataset.py
+│   └── models/
+│       ├── loss.py
+│       └── net.py
+├── checkpoints/      # Model weights (.pth)
+├── index/            # Vector database files (.pt, .json)
+├── api.py
+├── build_index.py
+├── train.py
+├── Dockerfile
+├── requirements.txt
+└── README.md
+```
+
+## Running with Docker (Recommended)
+
+The project is fully dockerized. To keep the image lightweight, we use Docker Volumes to mount the data and models from your local disk into the container.
+
+1. Clone repo
+```text
+git clone https://github.com/your-username/visual-search-engine.git
+cd visual-search-engine
+```
+
+2. Build the Image
+```text
+docker build -t visual-search-engine .
+```
+3. Run the Container
+
+This command mounts your local data, checkpoints, and index folders so the container can access them.
+
+```textdocker run --rm \
+  -v "$(pwd)/data":/visualsearchengine/data \
+  -v "$(pwd)/checkpoints":/visualsearchengine/checkpoints \
+  -v "$(pwd)/index":/visualsearchengine/index \
+  visual-search-engine python build_index.py
+  ```
+
+The API documentation will be available at: http://localhost:8000/docs
+## Local Installation (Without Docker)
+
+If you prefer to run it directly on your machine:
+
+Clone the repository:
+```text
+git clone [https://github.com/your-username/visual-search-engine.git](https://github.com/your-username/visual-search-enginegit)
+cd visual-search-engine
+```
+Install dependencies:
+```text
+pip install -r requirements.txt
+```
+
+Build the Index: This script processes all images and creates the vector database in the index/ folder.
+
+```text
+python build_index.py
+```
+
+Start the Server:
+
+```text
+uvicorn api:app --reload
+```

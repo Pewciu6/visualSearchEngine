@@ -44,16 +44,16 @@ def main():
     print(f"Training on device: {DEVICE}")
     set_seed(SEED)
 
-    transforms = T.Compose([
-        T.Resize((224, 224)),
-        T.ToTensor(),
-        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+    transforms = T.Compose(
+        [
+            T.Resize((224, 224)),
+            T.ToTensor(),
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
     base_dataset = FashionDataset(
-        csv_file=str(CSV_PATH),
-        root_dir=str(IMG_DIR),
-        transform=transforms
+        csv_file=str(CSV_PATH), root_dir=str(IMG_DIR), transform=transforms
     )
     triplet_dataset = TripletFashionDataset(base_dataset)
 
@@ -62,20 +62,20 @@ def main():
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=NUM_WORKERS,
-        pin_memory=(DEVICE == "cuda")
+        pin_memory=(DEVICE == "cuda"),
     )
 
     model = EmbeddingNet(embedding_size=EMBEDDING_SIZE, pretrained=True).to(DEVICE)
     criterion = TripletLoss(margin=MARGIN)
     optimizer = optim.Adam(model.parameters(), lr=LR)
 
-    best_loss = float('inf')
+    best_loss = float("inf")
 
     for epoch in range(EPOCHS):
         model.train()
         total_loss = 0.0
 
-        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{EPOCHS}", unit="batch")
+        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{EPOCHS}", unit="batch")
 
         for anchor, positive, negative in progress_bar:
             anchor, positive, negative = anchor.to(DEVICE), positive.to(DEVICE), negative.to(DEVICE)
@@ -92,10 +92,10 @@ def main():
             optimizer.step()
 
             total_loss += loss.item()
-            progress_bar.set_postfix({'loss': f"{loss.item():.4f}"})
+            progress_bar.set_postfix({"loss": f"{loss.item():.4f}"})
 
         avg_loss = total_loss / len(dataloader)
-        print(f"Epoch {epoch+1} Summary: Avg Loss = {avg_loss:.4f}")
+        print(f"Epoch {epoch + 1} Summary: Avg Loss = {avg_loss:.4f}")
 
         if avg_loss < best_loss:
             best_loss = avg_loss

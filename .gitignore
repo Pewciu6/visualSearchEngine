@@ -10,11 +10,12 @@ env/
 .vscode/
 *.swp
 
-data/
+data/images
+data/styles.csv
 
 *.png
 *.jpg
-!src/data/*.jpg  
+
 
 *.avif
 *.jpg

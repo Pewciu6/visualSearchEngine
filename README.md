@@ -53,7 +53,7 @@ To run the project, you need to:
 visual-search-engine/
 ├── data/
 │   ├── images/       # (Empty initially)
-│   └── styles.csv    
+│   └── styles.csv
 ├── src/
 │   ├── data/
 │   │   ├── dataset.py
@@ -69,3 +69,56 @@ visual-search-engine/
 ├── Dockerfile
 ├── requirements.txt
 └── README.md
+```
+
+## Running with Docker
+
+The project is fully dockerized. To keep the image lightweight, we use Docker Volumes to mount the data and models from your local disk into the container.
+
+1. Clone repo
+```text
+git clone https://github.com/your-username/visual-search-engine.git
+cd visual-search-engine
+```
+
+2. Build the Image
+```text
+docker build -t visual-search-engine .
+```
+3. Run the Container
+
+This command mounts your local data, checkpoints, and index folders so the container can access them.
+
+```textdocker run --rm \
+  -v "$(pwd)/data":/visualsearchengine/data \
+  -v "$(pwd)/checkpoints":/visualsearchengine/checkpoints \
+  -v "$(pwd)/index":/visualsearchengine/index \
+  visual-search-engine python build_index.py
+  ```
+
+The API documentation will be available at: http://localhost:8000/docs
+## Local Installation (Without Docker)
+
+If you prefer to run it directly on your machine:
+
+Clone the repository:
+```text
+git clone [https://github.com/your-username/visual-search-engine.git](https://github.com/your-username/visual-search-enginegit)
+cd visual-search-engine
+```
+Install dependencies:
+```text
+pip install -r requirements.txt
+```
+
+Build the Index: This script processes all images and creates the vector database in the index/ folder.
+
+```text
+python build_index.py
+```
+
+Start the Server:
+
+```text
+uvicorn api:app --reload
+```

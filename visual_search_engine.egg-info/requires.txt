@@ -5,3 +5,6 @@ pillow
 fastapi
 uvicorn
 pydantic
+python-multipart
+requests
+tqdm>=4.67.1
