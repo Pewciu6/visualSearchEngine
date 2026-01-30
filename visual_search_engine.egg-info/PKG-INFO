@@ -14,6 +14,7 @@ Requires-Dist: uvicorn
 Requires-Dist: pydantic
 Requires-Dist: python-multipart
 Requires-Dist: requests
+Requires-Dist: streamlit
 Requires-Dist: tqdm>=4.67.1
 
 # Visual Search Engine
@@ -89,7 +90,7 @@ visual-search-engine/
 └── README.md
 ```
 
-## Running with Docker (Recommended)
+## Running with Docker
 
 The project is fully dockerized. To keep the image lightweight, we use Docker Volumes to mount the data and models from your local disk into the container.
 
