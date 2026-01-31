@@ -33,7 +33,7 @@ if uploaded_file is not None:
                     files = {
                         "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
                     }
-                    params = {"top_k": top_k, "model": model_choice}
+                    params = {"top_k": top_k, "model_type": model_choice}
 
                     response = requests.post(SEARCH_ENDPOINT, files=files, params=params)
 
