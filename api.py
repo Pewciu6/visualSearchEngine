@@ -1,6 +1,5 @@
 import io
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 import torch
@@ -22,31 +21,22 @@ IMG_DIR = ROOT_DIR / "data" / "images"
 
 app.mount("/images", StaticFiles(directory=IMG_DIR), name="images")
 
-model: Callable | None = None
-transform: Callable | None = None
-db_vectors: torch.Tensor | None = None
-db_filenames: list[str] | None = None
+MODELS = {}
+VECTORS = {}
+FILENAMES = {}
+TRANSFORM = None
 
 
 @app.on_event("startup")
 def load_model():
-    global model, transform, db_vectors, db_filenames
+    global TRANSFORM
 
-    model = EmbeddingNet(embedding_size=EMBEDDING_SIZE, pretrained=False)
-    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
-    model.to(DEVICE)
-    model.eval()
+    configs = {
+        "resnet": {"path": "checkpoints/best_model_resnet.pth", "index": "index/vectors_resnet.pt"},
+        "vit": {"path": "checkpoints/best_model_vit.pth", "index": "index/vectors_vit.pt"},
+    }
 
-    if not (INDEX_DIR / "vectors.pt").exists():
-        raise FileNotFoundError(
-            "No index file found. Please create the index before starting the API."
-        )
-    else:
-        db_vectors = torch.load(INDEX_DIR / "vectors.pt", map_location=DEVICE)
-        with open(INDEX_DIR / "filenames.json") as f:
-            db_filenames = json.load(f)
-
-    transform = T.Compose(
+    TRANSFORM = T.Compose(
         [
             T.Resize((224, 224)),
             T.ToTensor(),
@@ -54,43 +44,49 @@ def load_model():
         ]
     )
 
+    for name, cfg in configs.items():
+        print(f"Loading model: {name}")
+        net = EmbeddingNet(architecture=name, embedding_size=128, pretrained=False)
 
-@app.post("/predict")
-async def predict(file: UploadFile = File):
+        if Path(cfg["path"]).exists():
+            net.load_state_dict(torch.load(cfg["path"]), map_location=DEVICE)
+            net.to(DEVICE)
+            net.eval()
+            MODELS[name] = net
+        else:
+            print(f"Warning: No weights found for {name} at {cfg['path']}")
 
-    if model is None or transform is None:
-        raise HTTPException(status_code=503, detail="Model not initialized.")
-
-    image_data = await file.read()
-    image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    input_tensor = transform(image).unsqueeze(0).to(DEVICE)
-    with torch.no_grad():
-        embedding = model(input_tensor)
-
-    return {
-        "filename": file.filename,
-        "vector_sample": embedding.cpu().numpy()[0][:10].tolist(),
-        "message": "Embedding generated successfully!",
-    }
+        if Path(cfg["index"]).exists():
+            VECTORS[name] = torch.load(cfg["index"], map_location=DEVICE)
+            with open(INDEX_DIR / "filenames.json") as f:
+                FILENAMES[name] = json.load(f)
 
 
 @app.post("/search")
-async def similar(file: UploadFile = File, top_k: int = 5):
+async def similar(file: UploadFile = File, top_k: int = 5, model_type: str = "resnet"):
+    if TRANSFORM is None:
+        raise HTTPException(status_code=500, detail="Image transforms not initialized.")
 
-    if model is None or transform is None:
-        raise HTTPException(status_code=503, detail="Model not initialized.")
+    if model_type not in MODELS:
+        raise HTTPException(
+            status_code=400, detail=f"Model {model_type} not available choose from: [resnet, vit]"
+        )
 
-    if db_vectors is None or db_filenames is None:
+    active_model = MODELS[model_type]
+    active_vectors = VECTORS.get(model_type)
+    active_filenames = FILENAMES.get(model_type)
+
+    if active_vectors is None or active_filenames is None:
         raise HTTPException(status_code=503, detail="Vector database not ready. Index missing.")
 
     image_data = await file.read()
     image = Image.open(io.BytesIO(image_data)).convert("RGB")
-    input_tensor = transform(image).unsqueeze(0).to(DEVICE)
+    input_tensor = TRANSFORM(image).unsqueeze(0).to(DEVICE)
 
     with torch.no_grad():
-        query_vector = model(input_tensor)
+        query_vector = active_model(input_tensor)
 
-    distances = torch.cdist(query_vector, db_vectors, p=2)
+    distances = torch.cdist(query_vector, active_vectors, p=2)
     values, indicies = torch.topk(distances, top_k, largest=False)
 
     results = []
@@ -98,7 +94,7 @@ async def similar(file: UploadFile = File, top_k: int = 5):
     best_distances = values[0].cpu().numpy()
 
     for i, idx in enumerate(best_indices):
-        filename = db_filenames[idx]
+        filename = active_filenames[idx]
         dist = float(best_distances[i])
 
         results.append(
@@ -106,12 +102,11 @@ async def similar(file: UploadFile = File, top_k: int = 5):
                 "rank": i + 1,
                 "filename": filename,
                 "distance": round(dist, 4),
-                "url": f"/images/{filename}",
                 "image_url": f"http://127.0.0.1:8000/images/{filename}",
             }
         )
 
-    return {"query_filename": file.filename, "results": results}
+    return {"results": results, "model": model_type}
 
 
 @app.get("/")

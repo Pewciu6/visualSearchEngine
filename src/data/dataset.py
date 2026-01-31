@@ -18,32 +18,32 @@ class FashionDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        df = pd.read_csv(csv_file, on_bad_lines='skip')
-        df['filename'] = df['id'].astype(str) + '.jpg'
+        df = pd.read_csv(csv_file, on_bad_lines="skip")
+        df["filename"] = df["id"].astype(str) + ".jpg"
         available_files = set(os.listdir(root_dir))
 
         initial_count = len(df)
-        df = df[df['filename'].isin(available_files)]
+        df = df[df["filename"].isin(available_files)]
         final_count = len(df)
 
         if initial_count != final_count:
             print(f"Deleted {initial_count - final_count} entries due to missing images.")
 
         self.data = df.reset_index(drop=True)
-        self.class_to_idx = {cls: i for i, cls in enumerate(self.data['articleType'].unique())}
+        self.class_to_idx = {cls: i for i, cls in enumerate(self.data["articleType"].unique())}
         self.idx_to_class = {i: cls for cls, i in self.class_to_idx.items()}
 
-        self.data['label'] = self.data['articleType'].map(self.class_to_idx)
+        self.data["label"] = self.data["articleType"].map(self.class_to_idx)
 
     def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, idx: int) -> tuple[Any, int]:
         row = self.data.iloc[idx]
-        img_name = os.path.join(self.root_dir, row['filename'])
-        label = row['label']
+        img_name = os.path.join(self.root_dir, row["filename"])
+        label = row["label"]
 
-        image = Image.open(img_name).convert('RGB')
+        image = Image.open(img_name).convert("RGB")
 
         if self.transform:
             image = self.transform(image)

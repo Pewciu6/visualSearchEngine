@@ -7,10 +7,9 @@ from src.data.dataset import FashionDataset
 
 
 class TripletFashionDataset(Dataset):
-    def __init__(self, base_dataset : FashionDataset):
-
+    def __init__(self, base_dataset: FashionDataset):
         self.base_dataset = base_dataset
-        self.labels = base_dataset.data['label'].tolist()
+        self.labels = base_dataset.data["label"].tolist()
 
         self.label_to_indices = {}
 
@@ -19,17 +18,16 @@ class TripletFashionDataset(Dataset):
                 self.label_to_indices[label] = []
             self.label_to_indices[label].append(idx)
 
-        self.valid_labels = [ lbl for lbl, idxs in self.label_to_indices.items() if len(idxs) > 1 ]
+        self.valid_labels = [lbl for lbl, idxs in self.label_to_indices.items() if len(idxs) > 1]
         self.valid_labels_set = set(self.valid_labels)
 
     def __len__(self) -> int:
         return len(self.base_dataset)
 
-    def __getitem__(self, index : int) -> tuple[torch.tensor, torch.tensor, torch.tensor]:
-
+    def __getitem__(self, index: int) -> tuple[torch.tensor, torch.tensor, torch.tensor]:
         anchor, label = self.base_dataset[index]
         if label not in self.valid_labels_set:
-            return self.__getitem__(random.randint(0,len(self.base_dataset)-1))
+            return self.__getitem__(random.randint(0, len(self.base_dataset) - 1))
 
         list_of_valid_indexes_positive = self.label_to_indices[label]
 
