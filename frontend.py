@@ -10,6 +10,10 @@ st.title("Visual Search Engine")
 st.markdown("Upload an image to find visually similar images from our database.")
 
 st.sidebar.header("Configuration")
+model_choice = st.sidebar.selectbox(
+    'Choose AI Model',
+    ('resnet', 'vit'),
+)
 top_k = st.sidebar.slider("Number of results", min_value=1, max_value=20, value=5)
 
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
@@ -24,10 +28,10 @@ if uploaded_file is not None:
     with col2:
         st.subheader("Search Results")
         if st.button("Search"):
-            with st.spinner("Searching for matches..."):
+            with st.spinner(f"Searching with {model_choice} for matches..."):
                 try:
                     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                    params = {"top_k": top_k}
+                    params = {"top_k": top_k, "model" : model_choice}
 
                     response = requests.post(SEARCH_ENDPOINT, files=files, params=params)
 
