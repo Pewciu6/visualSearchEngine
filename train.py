@@ -15,7 +15,6 @@ from src.models.loss import TripletLoss
 from src.models.net import EmbeddingNet
 
 SEED = 42
-BATCH_SIZE = 32
 EMBEDDING_SIZE = 128
 MARGIN = 1.0
 EPOCHS = 5
@@ -49,6 +48,14 @@ def main():
         choices=["resnet", "vit"],
         help="Architecture to use: 'resnet' or 'vit'"
     )
+
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=32,
+        help="Batch size for training"
+    )
+
     args = parser.parse_args()
 
     print(f"Training Model: {args.model.upper()} on device: {DEVICE}")
@@ -69,7 +76,7 @@ def main():
 
     dataloader = DataLoader(
         triplet_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=args.batch_size,
         shuffle=True,
         num_workers=NUM_WORKERS,
         pin_memory=(DEVICE == "cuda"),
