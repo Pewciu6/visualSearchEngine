@@ -18,6 +18,8 @@ data/styles.csv
 
 *.egg-info/
 
+*checkpoints/
+
 *.avif
 *.jpg
 *.png
