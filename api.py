@@ -49,7 +49,7 @@ def load_model():
         net = EmbeddingNet(architecture=name, embedding_size=128, pretrained=False)
 
         if Path(cfg["path"]).exists():
-            net.load_state_dict(torch.load(cfg["path"]), map_location=DEVICE)
+            net.load_state_dict(torch.load(cfg["path"], map_location=DEVICE))
             net.to(DEVICE)
             net.eval()
             MODELS[name] = net
