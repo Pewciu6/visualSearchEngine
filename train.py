@@ -1,3 +1,4 @@
+import argparse
 import random
 from pathlib import Path
 
@@ -17,7 +18,6 @@ SEED = 42
 BATCH_SIZE = 32
 EMBEDDING_SIZE = 128
 MARGIN = 1.0
-LR = 1e-4
 EPOCHS = 5
 NUM_WORKERS = 0
 
@@ -41,7 +41,17 @@ def set_seed(seed: int = 42) -> None:
 
 
 def main():
-    print(f"Training on device: {DEVICE}")
+    parser = argparse.ArgumentParser(description="Train Visual Search Embeddings")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="resnet",
+        choices=["resnet", "vit"],
+        help="Architecture to use: 'resnet' or 'vit'"
+    )
+    args = parser.parse_args()
+
+    print(f"Training Model: {args.model.upper()} on device: {DEVICE}")
     set_seed(SEED)
 
     transforms = T.Compose(
@@ -65,9 +75,14 @@ def main():
         pin_memory=(DEVICE == "cuda"),
     )
 
-    model = EmbeddingNet(embedding_size=EMBEDDING_SIZE, pretrained=True).to(DEVICE)
+    model = EmbeddingNet(architecture=args.model, embedding_size=EMBEDDING_SIZE, pretrained=True).to(DEVICE)
     criterion = TripletLoss(margin=MARGIN)
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+
+    learning_rate = 1e-5 if args.model == "vit" else 1e-4
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    best_model_name = f"best_model_{args.model}.pth"
+    last_model_name = f"last_model_{args.model}.pth"
 
     best_loss = float("inf")
 
@@ -99,9 +114,10 @@ def main():
 
         if avg_loss < best_loss:
             best_loss = avg_loss
-            torch.save(model.state_dict(), SAVE_DIR / "best_model.pth")
+            torch.save(model.state_dict(), SAVE_DIR / best_model_name)
+            print(f"Saved better model to {best_model_name}")
 
-        torch.save(model.state_dict(), SAVE_DIR / "last_model.pth")
+        torch.save(model.state_dict(), SAVE_DIR / last_model_name)
 
 
 if __name__ == "__main__":
