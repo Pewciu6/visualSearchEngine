@@ -16,6 +16,7 @@ data/styles.csv
 *.png
 *.jpg
 
+*.egg-info/
 
 *.avif
 *.jpg
