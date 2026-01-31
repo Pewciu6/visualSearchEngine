@@ -11,8 +11,8 @@ st.markdown("Upload an image to find visually similar images from our database."
 
 st.sidebar.header("Configuration")
 model_choice = st.sidebar.selectbox(
-    'Choose AI Model',
-    ('resnet', 'vit'),
+    "Choose AI Model",
+    ("resnet", "vit"),
 )
 top_k = st.sidebar.slider("Number of results", min_value=1, max_value=20, value=5)
 
@@ -30,8 +30,10 @@ if uploaded_file is not None:
         if st.button("Search"):
             with st.spinner(f"Searching with {model_choice} for matches..."):
                 try:
-                    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                    params = {"top_k": top_k, "model" : model_choice}
+                    files = {
+                        "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
+                    }
+                    params = {"top_k": top_k, "model": model_choice}
 
                     response = requests.post(SEARCH_ENDPOINT, files=files, params=params)
 
@@ -46,7 +48,11 @@ if uploaded_file is not None:
                             with cols[idx % 3]:
                                 img_url = result.get("image_url")
 
-                                st.image(img_url, caption=f"Rank {result['rank']} (Dist: {result['distance']})", use_container_width=True)
+                                st.image(
+                                    img_url,
+                                    caption=f"Rank {result['rank']} (Dist: {result['distance']})",
+                                    use_container_width=True,
+                                )
 
                     else:
                         st.error(f"Error {response.status_code}: {response.text}")
