@@ -1,3 +1,4 @@
+import argparse
 import json
 from pathlib import Path
 
@@ -10,22 +11,46 @@ from src.data.dataset import FashionDataset
 from src.models.net import EmbeddingNet
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-BATCH_SIZE = 128
 EMBEDDING_SIZE = 128
 
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
 CSV_PATH = DATA_DIR / "styles.csv"
 IMG_DIR = DATA_DIR / "images"
-CHECKPOINT_PATH = ROOT_DIR / "checkpoints" / "best_model.pth"
+CHECKPOINT_DIR = ROOT_DIR / "checkpoints"
 INDEX_PATH = ROOT_DIR / "index"
 
 INDEX_PATH.mkdir(exist_ok=True)
 
 
 def main():
-    model = EmbeddingNet(embedding_size=EMBEDDING_SIZE).to(DEVICE)
-    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
+
+    parser = argparse.ArgumentParser(description="Build Search Index")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="resnet",
+        choices=["resnet", "vit"],
+        help="Architecture to use: 'resnet' or 'vit'"
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=32,
+        help="Batch size for inference (lower it for ViT if OOM occurs)"
+    )
+    args = parser.parse_args()
+
+    print(f"Building index for: {args.model.upper()}")
+
+    checkpoint_path = CHECKPOINT_DIR / f"best_model_{args.model}.pth"
+    output_vectors_path = INDEX_PATH / f"vectors_{args.model}.pt"
+
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Weights not found: {checkpoint_path}. Did you train this model?")
+
+    model = EmbeddingNet(architecture=args.model, embedding_size=EMBEDDING_SIZE).to(DEVICE)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
     model.eval()
 
     TRANSFORMS = T.Compose(
@@ -44,7 +69,7 @@ def main():
 
     dataset.data = dataset.data[dataset.data.apply(check_file_exists, axis=1)]
     dataset.data = dataset.data.reset_index(drop=True)
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
     all_embeddings = []
     all_paths = []
@@ -55,7 +80,7 @@ def main():
             embeddings = model(images)
             all_embeddings.append(embeddings.cpu())
 
-            start_idx = i * BATCH_SIZE
+            start_idx = i * args.batch_size
             end_idx = start_idx + len(images)
 
             batch_ids = dataset.data.iloc[start_idx:end_idx]["id"].astype(str).tolist()
@@ -64,10 +89,12 @@ def main():
             all_paths.extend(batch_filenames)
 
     vector_db = torch.cat(all_embeddings)
-    torch.save(vector_db, INDEX_PATH / "vectors.pt")
+    torch.save(vector_db, output_vectors_path)
+    print(f"Saved vectors to: {output_vectors_path}")
 
     with open(INDEX_PATH / "filenames.json", "w") as f:
         json.dump(all_paths, f)
+    print("Saved filenames.json")
 
 
 if __name__ == "__main__":
