@@ -47,7 +47,14 @@ if st.sidebar.checkbox("Show 2D Space Visualization"):
         fig.update_xaxes(visible=False)
         fig.update_yaxes(visible=False)
 
-        st.plotly_chart(fig)
+        event = st.plotly_chart(fig, on_select="rerun", use_container_width=True)
+
+        if event and event["selection"]["points"]:
+            idx = event["selection"]["points"][0]["point_index"]
+            filename = df_sample.iloc[idx]["filename"]
+
+            st.write(f"**Wybrano:** {filename}")
+            st.image(f"data/images/{filename}", width=300)
 
     except FileNotFoundError:
         st.error(
