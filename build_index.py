@@ -24,20 +24,19 @@ INDEX_PATH.mkdir(exist_ok=True)
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Build Search Index")
     parser.add_argument(
         "--model",
         type=str,
         default="resnet",
         choices=["resnet", "vit"],
-        help="Architecture to use: 'resnet' or 'vit'"
+        help="Architecture to use: 'resnet' or 'vit'",
     )
     parser.add_argument(
         "--batch_size",
         type=int,
         default=32,
-        help="Batch size for inference (lower it for ViT if OOM occurs)"
+        help="Batch size for inference (lower it for ViT if OOM occurs)",
     )
     args = parser.parse_args()
 

@@ -46,15 +46,10 @@ def main():
         type=str,
         default="resnet",
         choices=["resnet", "vit"],
-        help="Architecture to use: 'resnet' or 'vit'"
+        help="Architecture to use: 'resnet' or 'vit'",
     )
 
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=32,
-        help="Batch size for training"
-    )
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
 
     args = parser.parse_args()
 
@@ -82,7 +77,9 @@ def main():
         pin_memory=(DEVICE == "cuda"),
     )
 
-    model = EmbeddingNet(architecture=args.model, embedding_size=EMBEDDING_SIZE, pretrained=True).to(DEVICE)
+    model = EmbeddingNet(
+        architecture=args.model, embedding_size=EMBEDDING_SIZE, pretrained=True
+    ).to(DEVICE)
     criterion = TripletLoss(margin=MARGIN)
 
     learning_rate = 1e-5 if args.model == "vit" else 1e-4
