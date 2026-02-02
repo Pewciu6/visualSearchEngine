@@ -37,6 +37,7 @@ if st.sidebar.checkbox("Show 2D Space Visualization"):
             df_sample,
             x="x",
             y="y",
+            color="label",
             hover_data=["filename"],
             title=f"2D Projection of {model_choice.upper()} Embeddings (t-SNE)",
             opacity=0.6,

@@ -71,13 +71,16 @@ def main():
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
     all_embeddings = []
+    all_labels = []
     all_paths = []
 
     with torch.no_grad():
-        for i, (images, _labels) in enumerate(tqdm(dataloader)):
+        for i, (images, labels) in enumerate(tqdm(dataloader)):
             images = images.to(DEVICE)
             embeddings = model(images)
+
             all_embeddings.append(embeddings.cpu())
+            all_labels.extend(labels.tolist())
 
             start_idx = i * args.batch_size
             end_idx = start_idx + len(images)
@@ -87,6 +90,9 @@ def main():
             batch_filenames = [f"{pid}.jpg" for pid in batch_ids]
             all_paths.extend(batch_filenames)
 
+            if i > 200:
+                break
+
     vector_db = torch.cat(all_embeddings)
     torch.save(vector_db, output_vectors_path)
     print(f"Saved vectors to: {output_vectors_path}")
@@ -94,6 +100,10 @@ def main():
     with open(INDEX_PATH / "filenames.json", "w") as f:
         json.dump(all_paths, f)
     print("Saved filenames.json")
+
+    with open(INDEX_PATH / "indexes.json", "w") as f:
+        json.dump(all_labels, f)
+    print("Saved labels to index")
 
 
 if __name__ == "__main__":

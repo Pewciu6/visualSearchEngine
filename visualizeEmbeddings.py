@@ -16,6 +16,10 @@ def main():
     vectors = torch.load(f"index/vectors_{args.model}.pt", map_location="cpu")
     vectors_np = vectors.numpy()
 
+    labels = None
+    with open("index/indexes.json") as f:
+       labels = json.load(f)
+
     print("Running t-sne...")
     tsne = TSNE(n_components=2, perplexity=80, random_state=42, init="pca", learning_rate="auto")
     vectors_2d = tsne.fit_transform(vectors_np)
@@ -26,7 +30,7 @@ def main():
 
     data = []
     for i, (x, y) in enumerate(vectors_2d):
-        data.append({"filename": filenames[i], "x": float(x), "y": float(y)})
+        data.append({"label" : labels[i], "filename": filenames[i], "x": float(x), "y": float(y)})
 
     with open(output_path, "w") as f:
         json.dump(data, f)
